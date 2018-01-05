@@ -88,6 +88,7 @@ R(pings::Channel{EK60Ping}; soundvelocity = nothing) =
     R(collect(pings[1]), soundvelocity=soundvelocity)
 
 
+
 ################################################################################
 
 # We must apply the SONAR equation and instrument corrections as
@@ -298,6 +299,28 @@ function Sv(ping::EK60Ping;
 
 end
 
+
+function myhcat(s; missingvalue=NaN32)
+    ls = map(length,s)
+    minlength =minimum(ls)
+    maxlength =maximum(ls)
+    if minlength == maxlength
+        return hcat(s...)
+    end
+
+    etype = typeof(missingvalue)
+    array = Array{etype}(maxlength, length(s))
+    array .= missingvalue
+    for i in 1:length(s)
+        r = 1:length(s[i])
+        array[r, i] .= s[i][r]
+        # for j in 1:length(s[i])
+        #     array[j,i] = s[i][j]
+        # end
+    end
+    return array
+end
+
 """
     Sv(pings::Vector{EK60Ping};
             frequency=nothing,
@@ -335,7 +358,8 @@ function Sv(pings::Vector{EK60Ping};
             transmitpower=transmitpower,
             pulselength=pulselength,
             sacorrection=sacorrection) for ping in pings]
-    hcat(s...)
+
+    myhcat(s)
 end
 
 
@@ -372,7 +396,7 @@ athwartshipangle(ping::EK60Ping) = ping.athwartshipangle
 
 function athwartshipangle(pings::Vector{EK60Ping})
     s = [ping.athwartshipangle for ping in pings]
-    hcat(s...)
+    myhcat(s, missingvalue=Int8(0))
 end
 
 athwartshipangle(pings::Channel{EK60Ping}) = athwartshipangle(collect(pings))
@@ -392,7 +416,7 @@ alongshipangle(ping::EK60Ping) = ping.alongshipangle
 
 function alongshipangle(pings::Vector{EK60Ping})
     s = [ping.alongshipangle for ping in pings]
-    hcat(s...)
+    myhcat(s, missingvalue=Int8(0))
 end
 
 alongshipangle(pings::Channel{EK60Ping}) = alongshipangle(collect(pings))
@@ -405,7 +429,7 @@ power(ping::EK60Ping) = ping.power
 
 function power(pings::Vector{EK60Ping})
     s = [ping.power for ping in pings]
-    hcat(s...)
+    myhcat(s, missingvalue=Int16(0))
 end
 
 power(pings::Channel{EK60Ping}) = power(collect(pings))
