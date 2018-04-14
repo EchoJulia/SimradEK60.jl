@@ -3,7 +3,7 @@ module SimradEK60
 
 using SimradRaw
 
-export Sv, pings, power, powerdb,  athwartshipangle, alongshipangle, R
+export Sv, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime
 
 ################################################################################
 
@@ -87,7 +87,20 @@ R(pings::Vector{EK60Ping}; soundvelocity = nothing) =
 R(pings::Channel{EK60Ping}; soundvelocity = nothing) =
     R(collect(pings[1]), soundvelocity=soundvelocity)
 
+###
 
+"""
+    filetime(ping::EK60Ping)
+
+Returns the FILETIME timestamp for a ping
+"""
+filetime(ping::EK60Ping) = ping.filetime
+
+function filetime(pings::Vector{EK60Ping})
+    [ping.filetime for ping in pings]
+end
+
+filetime(pings::Channel{EK60Ping}) = filetime(collect(pings))
 
 ################################################################################
 
@@ -196,7 +209,7 @@ function pings(filenames::Vector{String})
                                         datagram.alongshipangle,
                                         filename,
                                         offset,
-                                        filetime(datagram.dgheader.datetime),
+                                        SimradRaw.filetime(datagram.dgheader.datetime),
                                         datagram.frequency,
                                         datagram.soundvelocity,
                                         datagram.sampleinterval,
