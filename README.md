@@ -20,7 +20,7 @@ Sv38 = Sv(ps38)
 al38 = alongshipangle(ps38)
 at38 = athwartshipangle(ps38)
 _R = R(ps38)
-_t = filename(ps38) # timestamps
+_t = filetime(ps38) # timestamps
 ```
 
 ## References
