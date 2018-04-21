@@ -3,7 +3,7 @@ module SimradEK60
 
 using SimradRaw
 
-export Sv, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime
+export Sv, TS, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime
 
 ################################################################################
 
@@ -155,6 +155,26 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
 
     Pr + tvg + (2 * α * R) - csv - 2Sa
 end
+
+
+
+
+
+function TS(Pr, λ, G, α, Pt, R)
+
+    tvg =  max.(0, 40log10.(R))
+
+    csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2) /
+                   (16 * Float32(pi)^2))
+
+    Pr + tvg + (2 * α * R) - csv
+end
+
+
+
+
+
+
 
 
 """
@@ -313,6 +333,47 @@ function Sv(ping::EK60Ping;
 end
 
 
+
+
+
+function TS(ping::EK60Ping;
+            frequency=nothing,
+            gain=nothing,
+            soundvelocity=nothing,
+            absorptioncoefficient=nothing,
+            transmitpower=nothing)
+
+    if frequency == nothing
+        frequency = ping.frequency
+    end
+
+    if gain == nothing
+        gain = ping.gain
+    end
+
+    if soundvelocity == nothing
+        soundvelocity = ping.soundvelocity
+    end
+
+    if absorptioncoefficient == nothing
+        absorptioncoefficient = ping.absorptioncoefficient
+    end
+
+    if transmitpower == nothing
+        transmitpower= ping.transmitpower
+    end
+
+    pdb = powerdb(ping)
+
+    rangecorrected = R(ping, soundvelocity = soundvelocity)
+
+    λ =  soundvelocity / frequency # calculate wavelength
+
+    TS(pdb, λ, gain, absorptioncoefficient, transmitpower, rangecorrected)
+
+end
+
+
 function myhcat(s; missingvalue=NaN32)
     ls = map(length,s)
     minlength =minimum(ls)
@@ -376,6 +437,24 @@ function Sv(pings::Vector{EK60Ping};
 end
 
 
+function TS(pings::Vector{EK60Ping};
+            frequency=nothing,
+            gain=nothing,
+            soundvelocity=nothing,
+            absorptioncoefficient=nothing,
+            transmitpower=nothing)
+    s = [TS(ping,
+            frequency=frequency,
+            gain=gain,
+            soundvelocity=soundvelocity,
+            absorptioncoefficient=absorptioncoefficient,
+            transmitpower=transmitpower) for ping in pings]
+
+    myhcat(s)
+end
+
+
+
 function Sv(pings::Channel{EK60Ping};
             frequency=nothing,
             gain=nothing,
@@ -395,6 +474,23 @@ function Sv(pings::Channel{EK60Ping};
             pulselength=pulselength,
             sacorrection=sacorrection)
 end
+
+
+
+function TS(pings::Channel{EK60Ping};
+            frequency=nothing,
+            gain=nothing,
+            soundvelocity=nothing,
+            absorptioncoefficient=nothing,
+            transmitpower=nothing)
+    TS(collect(pings),
+            frequency=frequency,
+            gain=gain,
+            soundvelocity=soundvelocity,
+            absorptioncoefficient=absorptioncoefficient,
+            transmitpower=transmitpowern)
+end
+
 
 #
 
