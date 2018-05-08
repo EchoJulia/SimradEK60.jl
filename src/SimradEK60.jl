@@ -153,7 +153,10 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2 * c * τ * 10^(Ψ/10)) /
                    (32 * Float32(pi)^2))
 
-    Pr + tvg + (2 * α * R) - csv - 2Sa
+    # Ignore absorption for R < 1m
+    r =  [x < 1?0:x for x in R]
+
+    Pr + tvg + (2 * α * r) - csv - 2Sa
 end
 
 """
@@ -180,7 +183,10 @@ function TS(Pr, λ, G, α, Pt, R)
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2) /
                    (16 * Float32(pi)^2))
 
-    Pr + tvg + (2 * α * R) - csv
+    # Ignore absorption for R < 1m
+    r =  [x < 1?0:x for x in R]
+
+    Pr + tvg + (2 * α * r) - csv
 end
 
 """
