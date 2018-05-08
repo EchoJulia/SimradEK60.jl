@@ -57,7 +57,7 @@ R(r, s, T) = max.(0f0, r-s*T)
 
 
 """
-    R(ping::EK60Ping; soundvelocity = nothing)
+    R(ping::EK60Ping; soundvelocity = nothing, rangecorrectionoffset=2)
 
 Returns the corrected range (depth) of samples in `ping`.
 """
@@ -76,11 +76,15 @@ function R(ping::EK60Ping; soundvelocity = nothing, rangecorrectionoffset=2)
 
 end
 
-R(pings::Vector{EK60Ping}; soundvelocity = nothing) =
-    R(pings[1],soundvelocity=soundvelocity)
+R(pings::Vector{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2) =
+    R(pings[1],
+      soundvelocity=soundvelocity,
+      rangecorrectionoffset=rangecorrectionoffset)
 
-R(pings::Channel{EK60Ping}; soundvelocity = nothing) =
-    R(collect(pings[1]), soundvelocity=soundvelocity)
+R(pings::Channel{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2) =
+    R(collect(pings[1]),
+      soundvelocity=soundvelocity,
+      rangecorrectionoffset=rangecorrectionoffset)
 
 ###
 
@@ -255,7 +259,8 @@ end
             absorptioncoefficient=nothing,
             transmitpower=nothing,
             pulselength=nothing,
-            sacorrection=nothing)
+            sacorrection=nothing,
+            rangecorrectionoffset=2)
 
 Returns a `Vector` of Sv, the (Mean) Volume backscattering strength (MVBS) in (dB re
 1 m-1) for a given `ping`.
@@ -273,7 +278,8 @@ function Sv(ping::EK60Ping;
             absorptioncoefficient=nothing,
             transmitpower=nothing,
             pulselength=nothing,
-            sacorrection=nothing)
+            sacorrection=nothing,
+            rangecorrectionoffset=2)
 
     if frequency == nothing
         frequency = ping.frequency
@@ -309,7 +315,9 @@ function Sv(ping::EK60Ping;
 
     pdb = powerdb(ping)
 
-    rangecorrected = R(ping, soundvelocity = soundvelocity)
+    rangecorrected = R(ping,
+                       soundvelocity = soundvelocity,
+                       rangecorrectionoffset=rangecorrectionoffset)
 
     λ =  soundvelocity / frequency # calculate wavelength
 
@@ -322,14 +330,25 @@ end
 
 
 
+"""
+    TS(ping::EK60Ping;
+            frequency=nothing,
+            gain=nothing,
+            soundvelocity=nothing,
+            absorptioncoefficient=nothing,
+            transmitpower=nothing,
+            rangecorrectionoffset=0)
 
+Target strength
 
+"""
 function TS(ping::EK60Ping;
             frequency=nothing,
             gain=nothing,
             soundvelocity=nothing,
             absorptioncoefficient=nothing,
-            transmitpower=nothing)
+            transmitpower=nothing,
+            rangecorrectionoffset=0)
 
     if frequency == nothing
         frequency = ping.frequency
@@ -353,7 +372,9 @@ function TS(ping::EK60Ping;
 
     pdb = powerdb(ping)
 
-    rangecorrected = R(ping, soundvelocity = soundvelocity)
+    rangecorrected = R(ping,
+                       soundvelocity = soundvelocity,
+                       rangecorrectionoffset = rangecorrectionoffset)
 
     λ =  soundvelocity / frequency # calculate wavelength
 
@@ -385,16 +406,17 @@ end
 
 """
     Sv(pings::Vector{EK60Ping};
-            frequency=nothing,
-            gain=nothing,
-            equivalentbeamangle=nothing,
-            soundvelocity=nothing,
-            absorptioncoefficient=nothing,
-            transmitpower=nothing,
-            pulselength=nothing,
-            sacorrection=nothing)
+        frequency=nothing,
+        gain=nothing,
+        equivalentbeamangle=nothing,
+        soundvelocity=nothing,
+        absorptioncoefficient=nothing,
+        transmitpower=nothing,
+        pulselength=nothing,
+        sacorrection=nothing,
+        rangecorrectionoffset=2)
 
-Returns an `Array` of Sv, the (Mean) Volume backscattering strength (MVBS) in (dB re
+Returns an `Array` of Sv, the Volume backscattering strength in (dB re
 1 m-1) for a set of contiguous `pings`.
 
 The function accepts a number of optional arguments which, if
@@ -410,7 +432,8 @@ function Sv(pings::Vector{EK60Ping};
             absorptioncoefficient=nothing,
             transmitpower=nothing,
             pulselength=nothing,
-            sacorrection=nothing)
+            sacorrection=nothing,
+            rangecorrectionoffset=2)
     s = [Sv(ping,
             frequency=frequency,
             gain=gain,
@@ -419,24 +442,37 @@ function Sv(pings::Vector{EK60Ping};
             absorptioncoefficient=absorptioncoefficient,
             transmitpower=transmitpower,
             pulselength=pulselength,
-            sacorrection=sacorrection) for ping in pings]
+            sacorrection=sacorrection,
+            rangecorrectionoffset=rangecorrectionoffset) for ping in pings]
 
     myhcat(s)
 end
 
+"""
+    TS(pings::Vector{EK60Ping};
+            frequency=nothing,
+            gain=nothing,
+            soundvelocity=nothing,
+            absorptioncoefficient=nothing,
+            transmitpower=nothing,
+            rangecorrectionoffset=0)
 
+Target strength
+"""
 function TS(pings::Vector{EK60Ping};
             frequency=nothing,
             gain=nothing,
             soundvelocity=nothing,
             absorptioncoefficient=nothing,
-            transmitpower=nothing)
+            transmitpower=nothing,
+            rangecorrectionoffset=0)
     s = [TS(ping,
             frequency=frequency,
             gain=gain,
             soundvelocity=soundvelocity,
             absorptioncoefficient=absorptioncoefficient,
-            transmitpower=transmitpower) for ping in pings]
+            transmitpower=transmitpower,
+            rangecorrectionoffset=rangecorrectionoffset) for ping in pings]
 
     myhcat(s)
 end
@@ -451,16 +487,18 @@ function Sv(pings::Channel{EK60Ping};
             absorptioncoefficient=nothing,
             transmitpower=nothing,
             pulselength=nothing,
-            sacorrection=nothing)
+            sacorrection=nothing,
+            rangecorrectionoffset=2)
     Sv(collect(pings),
-            frequency=frequency,
-            gain=gain,
-            equivalentbeamangle=equivalentbeamangle,
-            soundvelocity=soundvelocity,
-            absorptioncoefficient=absorptioncoefficient,
-            transmitpower=transmitpower,
-            pulselength=pulselength,
-            sacorrection=sacorrection)
+       frequency=frequency,
+       gain=gain,
+       equivalentbeamangle=equivalentbeamangle,
+       soundvelocity=soundvelocity,
+       absorptioncoefficient=absorptioncoefficient,
+       transmitpower=transmitpower,
+       pulselength=pulselength,
+       sacorrection=sacorrection,
+       rangecorrectionoffset=rangecorrectionoffset)
 end
 
 
@@ -470,13 +508,15 @@ function TS(pings::Channel{EK60Ping};
             gain=nothing,
             soundvelocity=nothing,
             absorptioncoefficient=nothing,
-            transmitpower=nothing)
+            transmitpower=nothing,
+            rangecorrectionoffset=0)
     TS(collect(pings),
-            frequency=frequency,
-            gain=gain,
-            soundvelocity=soundvelocity,
-            absorptioncoefficient=absorptioncoefficient,
-            transmitpower=transmitpowern)
+       frequency=frequency,
+       gain=gain,
+       soundvelocity=soundvelocity,
+       absorptioncoefficient=absorptioncoefficient,
+       transmitpower=transmitpower,
+       rangecorrectionoffset=rangecorrectionoffset)
 end
 
 
