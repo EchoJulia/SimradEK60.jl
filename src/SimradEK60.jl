@@ -38,10 +38,6 @@ end
 
 ################################################################################
 
-# See Echoview documentation, Simrad Time Varied Gain (TVG) range
-# correction, http://bit.ly/2pqzS2D
-
-const TVG_RANGE_CORRECTION_OFFSET_SV = 2
 
 """
     R(r, s, T)
@@ -52,7 +48,8 @@ R is the corrected range (m)
 
 r the uncorrected range (m)
 
-s is the TvgRangeCorrectionOffset value 
+s is the TvgRangeCorrectionOffset value, See Echoview documentation,
+Simrad Time Varied Gain (TVG) range correction, http://bit.ly/2pqzS2D
 
 T is the sample thickness (m)
 """
@@ -64,7 +61,7 @@ R(r, s, T) = max.(0f0, r-s*T)
 
 Returns the corrected range (depth) of samples in `ping`.
 """
-function R(ping::EK60Ping; soundvelocity = nothing)
+function R(ping::EK60Ping; soundvelocity = nothing, rangecorrectionoffset=2)
 
     if soundvelocity == nothing
         soundvelocity = ping.soundvelocity
@@ -74,10 +71,8 @@ function R(ping::EK60Ping; soundvelocity = nothing)
 
     samplethickness = soundvelocity .* ping.sampleinterval / 2 # in metres of range
 
-    #nsamples = length(p)
-
     r = [x* samplethickness for x in 0:length(p)-1]
-    rangecorrected = R(r, TVG_RANGE_CORRECTION_OFFSET_SV, samplethickness)
+    R(r, rangecorrectionoffset, samplethickness)
 
 end
 
@@ -148,7 +143,8 @@ constant to harmonize the TS and NASC measurements.
 """
 function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
 
-    tvg =  max.(0, 20log10.(R))
+    # TVG is applied to samples with ranges greater than 1 meter.
+    tvg =  20log10.(max.(1, R))
 
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2 * c * τ * 10^(Ψ/10)) /
                    (32 * Float32(pi)^2))
@@ -156,13 +152,26 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
     Pr + tvg + (2 * α * R) - csv - 2Sa
 end
 
+"""
+     TS(Pr, λ, G, α, Pt, R)
 
+Target strength
 
+Pr = received power (dB re 1 W) - see Simrad EK numbers to Power
 
+G is the Transducer gain (dB re 1)
 
+α = absorption coefficient (dB/m)
+
+Pt = transmitted power (W)
+
+R = the corrected range (m) - see TVG Range Correction
+
+"""
 function TS(Pr, λ, G, α, Pt, R)
 
-    tvg =  max.(0, 40log10.(R))
+    # TVG is applied to samples with ranges greater than 1 meter.
+    tvg =  40log10.(max.(1, R))
 
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2) /
                    (16 * Float32(pi)^2))
@@ -170,14 +179,7 @@ function TS(Pr, λ, G, α, Pt, R)
     Pr + tvg + (2 * α * R) - csv
 end
 
-
-
-
-
-
-
-
-"""
+""
     maxrange(ping::EK60Ping)
 
 Returns the maximum range of a `ping` taking into account s is the
