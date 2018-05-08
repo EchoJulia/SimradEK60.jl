@@ -5,6 +5,10 @@ using SimradRaw
 
 export Sv, TS, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime
 
+# Float32 is okay for most practical purposes and within 10^-5 of EchoView
+# Float64 gets to 10^-7 of Echoview
+FLOAT_TYPE = Float32
+
 ################################################################################
 
 # We split the RAW file into a series of EK60 specific pings.
@@ -23,17 +27,17 @@ struct EK60Ping
     filename::AbstractString
     offset::UInt64
     filetime::UInt64
-    frequency::Float32
-    soundvelocity::Float32
-    sampleinterval::Float32
-    absorptioncoefficient::Float32
-    transmitpower::Float32
-    pulselength::Float32
-    gain::Float32
-    equivalentbeamangle::Float32
-    sacorrection::Float32
-    sacorrectiontable::Vector{Float32}
-    pulselengthtable::Vector{Float32}
+    frequency::FLOAT_TYPE
+    soundvelocity::FLOAT_TYPE
+    sampleinterval::FLOAT_TYPE
+    absorptioncoefficient::FLOAT_TYPE
+    transmitpower::FLOAT_TYPE
+    pulselength::FLOAT_TYPE
+    gain::FLOAT_TYPE
+    equivalentbeamangle::FLOAT_TYPE
+    sacorrection::FLOAT_TYPE
+    sacorrectiontable::Vector{FLOAT_TYPE}
+    pulselengthtable::Vector{FLOAT_TYPE}
 end
 
 ################################################################################
@@ -151,7 +155,7 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
     tvg =  20log10.(max.(1, R))
 
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2 * c * τ * 10^(Ψ/10)) /
-                   (32 * Float32(pi)^2))
+                   (32 * FLOAT_TYPE(pi)^2))
 
     # Ignore absorption for R < 1m
     r =  [x < 1?0:x for x in R]
@@ -181,7 +185,7 @@ function TS(Pr, λ, G, α, Pt, R)
     tvg =  40log10.(max.(1, R))
 
     csv = 10log10.((Pt * (10^(G/10))^2 *  λ^2) /
-                   (16 * Float32(pi)^2))
+                   (16 * FLOAT_TYPE(pi)^2))
 
     # Ignore absorption for R < 1m
     r =  [x < 1?0:x for x in R]
@@ -579,7 +583,7 @@ power(pings::Channel{EK60Ping}) = power(collect(pings))
 
 #
 
-const POWER_MULTIPLIER = Float32(10 * log10(2) / 256)
+const POWER_MULTIPLIER = FLOAT_TYPE(10 * log10(2) / 256)
 
 powerdb(x) = power(x) .* POWER_MULTIPLIER
 
