@@ -179,20 +179,6 @@ function TS(Pr, λ, G, α, Pt, R)
     Pr + tvg + (2 * α * R) - csv
 end
 
-""
-    maxrange(ping::EK60Ping)
-
-Returns the maximum range of a `ping` taking into account s is the
-TvgRangeCorrectionOffset value.
-
-"""
-function maxrange(ping::EK60Ping)
-    l = length(ping.power)
-    T = ping.soundvelocity * ping.sampleinterval / 2
-    (l - TVG_RANGE_CORRECTION_OFFSET_SV) * T
-end
-
-
 """
     pings(filename::AbstractString)
 
