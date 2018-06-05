@@ -6,14 +6,13 @@ Based on SimradRaw.jl, this project reads and intepretes Simrad EK60
 RAW files, extracting power and phase angle information and allowing
 calculation of volume backscatter, Sv.
 
-N.B. If you want to use the sample files, remember to `git lfs pull`
-them!
 
 ## Example
 
 ```
 using SimradEK60
-filename = SimradRaw.EK60_SAMPLE
+using SimradEK60TestData
+filename = EK60_SAMPLE
 ps = pings(filename)
 ps38 = [p for p in ps if p.frequency == 38000]
 Sv38 = Sv(ps38)
