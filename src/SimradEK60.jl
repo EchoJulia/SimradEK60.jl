@@ -80,13 +80,19 @@ function R(ping::EK60Ping; soundvelocity = nothing, rangecorrectionoffset=2)
 
 end
 
-R(pings::Vector{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2) =
-    R(pings[1],
+function R(pings::Vector{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2)
+
+    # Find the longest ping
+    i = indmax([length(p.power) for p in pings])
+
+    R(pings[i],
       soundvelocity=soundvelocity,
       rangecorrectionoffset=rangecorrectionoffset)
+end
+
 
 R(pings::Channel{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2) =
-    R(collect(pings[1]),
+    R(collect(pings),
       soundvelocity=soundvelocity,
       rangecorrectionoffset=rangecorrectionoffset)
 
