@@ -82,12 +82,12 @@ end
 
 function R(pings::Vector{EK60Ping}; soundvelocity = nothing, rangecorrectionoffset=2)
 
-    # Find the longest ping
-    i = indmax([length(p.power) for p in pings])
+    r = [R(ping,
+           soundvelocity=soundvelocity,
+           rangecorrectionoffset=rangecorrectionoffset) for ping in pings]
 
-    R(pings[i],
-      soundvelocity=soundvelocity,
-      rangecorrectionoffset=rangecorrectionoffset)
+    myhcat(r)
+    
 end
 
 
