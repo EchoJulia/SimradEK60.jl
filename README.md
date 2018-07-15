@@ -1,5 +1,7 @@
 # SimradEK60.jl
 
+[![Build Status](https://travis-ci.org/EchoJulia/SimradEK60.jl.svg?branch=master)](https://travis-ci.org/EchoJulia/SimradEK60.jl)
+
 ## Introduction
 
 Based on SimradRaw.jl, this project reads and intepretes Simrad EK60
@@ -13,7 +15,7 @@ calculation of volume backscatter, Sv.
 using SimradEK60
 using SimradEK60TestData
 filename = EK60_SAMPLE
-ps = pings(filename)
+ps = collect(pings(filename))
 ps38 = [p for p in ps if p.frequency == 38000]
 Sv38 = Sv(ps38)
 al38 = alongshipangle(ps38)
