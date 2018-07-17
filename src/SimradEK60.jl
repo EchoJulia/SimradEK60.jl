@@ -164,7 +164,7 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
                    (32 * FLOAT_TYPE(pi)^2))
 
     # Ignore absorption for R < 1m
-    r =  [x < 1?0:x for x in R]
+    r =  [(x < 1) ? 0 : x for x in R]
 
     Pr + tvg + (2 * α * r) - csv - 2Sa
 end
@@ -194,7 +194,7 @@ function TS(Pr, λ, G, α, Pt, R)
                    (16 * FLOAT_TYPE(pi)^2))
 
     # Ignore absorption for R < 1m
-    r =  [x < 1?0:x for x in R]
+    r =  [(x < 1) ? 0 : x for x in R]
 
     Pr + tvg + (2 * α * r) - csv
 end
