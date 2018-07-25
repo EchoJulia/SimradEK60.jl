@@ -14,6 +14,12 @@ else
     using Test
 end
 
+# Basic tests
+
+@test octet2deg(-128) == -180
+
+@test power2db(25.6f0) == log10(2f0)
+
 # SONAR equation for EK60
 
 alpha = 0.009841439f0
@@ -298,5 +304,8 @@ ps38 = [p for p in ps if p.frequency == 38000] # Just 38 kHz pings
 m, n = size(R(ps38))
 @test m == 5355 # not 5100 !
 @test n == 412
+
+
+#
 
 

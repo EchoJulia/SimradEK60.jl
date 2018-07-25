@@ -3,7 +3,7 @@ module SimradEK60
 
 using SimradRaw
 
-export Sv, TS, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime
+export Sv, TS, pings, power, powerdb,  athwartshipangle, alongshipangle, R, filetime, power2db, octet2deg
 
 # Float32 is okay for most practical purposes and within 10^-5 of EchoView
 # Float64 gets to 10^-7 of Echoview
@@ -589,6 +589,13 @@ alongshipangle(pings::Channel{EK60Ping}) = alongshipangle(collect(pings))
 
 #
 
+"""
+    power(ping::EK60Ping)
+
+Returns power data for a ping in manufacturer units. For decibels,
+see `powerdb`.
+
+"""
 power(ping::EK60Ping) = ping.power
 
 function power(pings::Vector{EK60Ping})
@@ -602,7 +609,30 @@ power(pings::Channel{EK60Ping}) = power(collect(pings))
 
 const POWER_MULTIPLIER = FLOAT_TYPE(10 * log10(2) / 256)
 
-powerdb(x) = power(x) .* POWER_MULTIPLIER
+"""
+    power2db(x)
 
+EK60 power data is stored in a "compressed", manufacturer specific
+format. This function converts to decibels.
+
+"""
+power2db(x) = x * POWER_MULTIPLIER
+
+"""
+    powerdb(x)
+
+Returns power data in decibels. x is one or more `Ping`s.
+
+"""
+powerdb(x) = power2db(power(x))
+
+
+"""
+    octet2deg(x)
+
+EK60 split beam angles are stored as signed octets with a resolution
+of 180/128.  Convert from octet to degrees.
+"""
+octet2deg(x) = x * 180/128
 
 end # module
