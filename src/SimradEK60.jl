@@ -244,6 +244,13 @@ function pings(datagrams::Channel{SimradRaw.Datagram})
     return Channel(_it, ctype=EK60Ping)
 end
 
+
+function pings(datagrams::Vector{SimradRaw.Datagram})
+    # Is there a neater method here?
+    chnl = Channel(c->foreach(i->put!(c,i), datagrams), ctype=SimradRaw.Datagram)
+    pings(chnl)
+end
+
 """
     pings(filename::AbstractString)
 
