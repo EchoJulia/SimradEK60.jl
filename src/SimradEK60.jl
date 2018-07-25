@@ -40,6 +40,9 @@ end
 
 ################################################################################
 
+function load(filename::AbstractString)
+    ps = collect(pings(filename))
+end
 
 """
     R(r, s, T)
