@@ -24,8 +24,6 @@ struct EK60Ping
     power::Vector{Int16}
     athwartshipangle::Vector{Int8}
     alongshipangle::Vector{Int8}
-    filename::AbstractString
-    offset::UInt64
     filetime::UInt64
     frequency::FLOAT_TYPE
     soundvelocity::FLOAT_TYPE
@@ -200,9 +198,53 @@ function TS(Pr, λ, G, α, Pt, R)
 end
 
 """
+    pings(datagrams::Channel{SimradRaw.Datagram})
+
+Returns a `Channel` of `Ping`s from a `Channel` of `Datagram`s.
+
+"""
+function pings(datagrams::Channel{SimradRaw.Datagram})
+    
+    function _it(chn1)
+        config = nothing
+        for datagram in datagrams
+            if datagram.dgheader.datagramtype == "RAW0"
+
+                transducer = config.configurationtransducers[datagram.channel]
+                idx = findfirst(transducer.pulselengthtable, datagram.pulselength)
+                sacorrection = transducer.sacorrectiontable[idx]
+
+                ping = EK60Ping(datagram.power,
+                                datagram.athwartshipangle,
+                                datagram.alongshipangle,
+                                SimradRaw.filetime(datagram.dgheader.datetime),
+                                datagram.frequency,
+                                datagram.soundvelocity,
+                                datagram.sampleinterval,
+                                datagram.absorptioncoefficient,
+                                datagram.transmitpower,
+                                datagram.pulselength,
+                                transducer.gain,
+                                transducer.equivalentbeamangle,
+                                sacorrection,
+                                transducer.sacorrectiontable,
+                                transducer.pulselengthtable)
+
+                put!(chn1, ping)
+
+            elseif datagram.dgheader.datagramtype == "CON0"
+                config = datagram
+            end
+        end
+    end
+
+    return Channel(_it, ctype=EK60Ping)
+end
+
+"""
     pings(filename::AbstractString)
 
-Returns an iterator over pings in the RAW file designated by
+Returns a `Channel` over `Ping`s from the RAW file designated by
 `filename`.
 
 """
@@ -213,54 +255,13 @@ end
 """
     pings(filenames::Vector{AbstractString}})
 
-Returns an iterator over pings in the RAW files designated by
+Returns a `Channel` of `Pings` from the RAW files designated by
 `filenames`.
 
 """
 function pings(filenames::Vector{String})
+    pings(datagrams(filenames))
 
-    function _it(chn1)
-
-        for filename in filenames
-            open(filename) do f
-                while !eof(f)
-                    offset = position(f)
-                    datagram = readencapsulateddatagram(f)
-                    if datagram.dgheader.datagramtype == "RAW0"
-
-                        transducer = config.configurationtransducers[datagram.channel]
-                        idx = findfirst(transducer.pulselengthtable, datagram.pulselength)
-                        sacorrection = transducer.sacorrectiontable[idx]
-
-                        ping = EK60Ping(datagram.power,
-                                        datagram.athwartshipangle,
-                                        datagram.alongshipangle,
-                                        filename,
-                                        offset,
-                                        SimradRaw.filetime(datagram.dgheader.datetime),
-                                        datagram.frequency,
-                                        datagram.soundvelocity,
-                                        datagram.sampleinterval,
-                                        datagram.absorptioncoefficient,
-                                        datagram.transmitpower,
-                                        datagram.pulselength,
-                                        transducer.gain,
-                                        transducer.equivalentbeamangle,
-                                        sacorrection,
-                                        transducer.sacorrectiontable,
-                                        transducer.pulselengthtable)
-
-                        put!(chn1, ping)
-
-                    elseif datagram.dgheader.datagramtype == "CON0"
-                        config = datagram
-                    end
-                end
-            end
-        end
-    end
-
-    return Channel(_it, ctype=EK60Ping)
 end
 
 
