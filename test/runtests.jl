@@ -1,13 +1,10 @@
 #!/usr/bin/env julia
 
 using SimradEK60
-
-using SimradEK60
 using CSVFiles
 using DataFrames
-
-
 using SimradEK60TestData
+
 @static if VERSION < v"0.7.0-DEV.2005"
     using Base.Test
 else
@@ -39,12 +36,8 @@ Sac = -0.49f0
 _Sv = Sv(Pr, lambda, G, psi, cv, alpha, pt, tau, Sac,
        rangeCorrected)
 
-
 @test typeof(_Sv[1]) == Float32
 @test _Sv[1] ≈ -94.1832
-
-
-using SimradEK60TestData
 
 # All pings
 
