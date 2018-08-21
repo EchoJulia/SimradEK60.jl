@@ -145,7 +145,6 @@ end
 
 function compare(A, B)
     x = rmse(A, B)
-    info(x)
     x < 1e-4
 end
 

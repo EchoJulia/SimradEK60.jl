@@ -58,7 +58,7 @@ Simrad Time Varied Gain (TVG) range correction, http://bit.ly/2pqzS2D
 
 T is the sample thickness (m)
 """
-R(r, s, T) = max.(0f0, r-s*T)
+R(r, s, T) = max.(0f0, r .- s*T)
 
 
 """
@@ -167,7 +167,7 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
     # Ignore absorption for R < 1m
     r =  [(x < 1) ? 0 : x for x in R]
 
-    Pr + tvg + (2 * α * r) - csv - 2Sa
+    Pr + tvg + (2 * α * r) .- csv .- 2Sa
 end
 
 """
@@ -214,7 +214,10 @@ function pings(datagrams::Channel{SimradRaw.Datagram})
             if datagram.dgheader.datagramtype == "RAW0"
 
                 transducer = config.configurationtransducers[datagram.channel]
-                idx = findfirst(transducer.pulselengthtable, datagram.pulselength)
+
+                #idx = findfirst(transducer.pulselengthtable, datagram.pulselength)
+                idx = findfirst(isequal(datagram.pulselength), transducer.pulselengthtable)
+                
                 sacorrection = transducer.sacorrectiontable[idx]
 
                 ping = EK60Ping(datagram.power,
