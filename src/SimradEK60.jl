@@ -167,7 +167,7 @@ function Sv(Pr, λ, G, Ψ, c, α, Pt, τ, Sa, R)
     # Ignore absorption for R < 1m
     r =  [(x < 1) ? 0 : x for x in R]
 
-    Pr + tvg + (2 * α * r) .- csv .- 2Sa
+    Pr .+ tvg + (2 * α * r) .- csv .- 2Sa
 end
 
 """
@@ -197,7 +197,7 @@ function TS(Pr, λ, G, α, Pt, R)
     # Ignore absorption for R < 1m
     r =  [(x < 1) ? 0 : x for x in R]
 
-    Pr + tvg + (2 * α * r) - csv
+    Pr .+ tvg + (2 * α * r) .- csv
 end
 
 """
@@ -422,14 +422,17 @@ function myhcat(s; missingvalue=NaN32)
     end
 
     etype = typeof(missingvalue)
-    array = Array{etype}(maxlength, length(s))
+    
+    @static if VERSION < v"0.7.0-DEV.2005"
+        array = Array{etype}(maxlength, length(s))
+    else
+         array = Array{etype}(undef, maxlength, length(s))
+    end
+
     array .= missingvalue
     for i in 1:length(s)
         r = 1:length(s[i])
         array[r, i] .= s[i][r]
-        # for j in 1:length(s[i])
-        #     array[j,i] = s[i][j]
-        # end
     end
     return array
 end

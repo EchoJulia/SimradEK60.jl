@@ -19,22 +19,22 @@ end
 
 # SONAR equation for EK60
 
-alpha = 0.009841439f0
-pt = 1000.0f0
-cv = 1448.2969f0
+α = 0.009841439f0
+Pt = 1000.0f0
+c = 1448.2969f0
 G = 25.92f0
 
 
-lambda = 0.038113076f0
+λ = 0.038113076f0
 
-psi = -20.7f0
-tau = 0.001024f0
+Ψ = -20.7f0
+τ = 0.001024f0
 Pr = -111.22823f0
-rangeCorrected = [18.1677435f0]
-Sac = -0.49f0
+_R = [18.1677435f0]
+Sa = -0.49f0
 
-_Sv = Sv(Pr, lambda, G, psi, cv, alpha, pt, tau, Sac,
-       rangeCorrected)
+_Sv = Sv(Pr,  λ, G, Ψ, c, α, Pt, τ, Sa,
+       _R)
 
 @test typeof(_Sv[1]) == Float32
 @test _Sv[1] ≈ -94.1832
@@ -151,14 +151,14 @@ end
 
 function load_echoview_matrix(filename)
 
-    df = CSVFiles.load(filename, header_exists=false,
+    @time df = CSVFiles.load(filename, header_exists=false,
                        skiplines_begin=1) |> DataFrame
 
     # df = CSV.read(filename,
     #               header=false,
     #               datarow=2)
 
-    A = transpose(convert(Array,df[:, 14:end]))
+    @time A = transpose(convert(Array,df[:, 14:end]))
 
     A= Float64.(A)
 end
