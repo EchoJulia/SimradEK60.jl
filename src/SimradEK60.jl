@@ -1,4 +1,3 @@
-__precompile__()
 module SimradEK60
 
 using SimradRaw
