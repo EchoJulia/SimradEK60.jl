@@ -1,9 +1,6 @@
 #!/usr/bin/env julia
 
 using SimradEK60
-using CSVFiles
-using DataFrames
-#using CSV
 using SimradEK60TestData
 using Test
 
@@ -147,16 +144,22 @@ end
 
 function load_echoview_matrix(filename)
 
-    @time df = CSVFiles.load(filename, header_exists=false,
-                       skiplines_begin=1) |> DataFrame
+    # This is a crappy but fast CSV reader. I tried CSV.jl but it
+    # segfaults. I tried CSVFiles but it takes (literally) minutes to
+    # run.
+    
+    a = []
+    open(filename) do file
+        for ln in eachline(file)
+            s = split(ln, ",")
+            s = s[14:end]
+            s = map(x->parse(Float64,x), s)
+            push!(a,s)
+        end
+    end
 
-    # df = CSV.read(filename,
-    #               header=false,
-    #               datarow=2)
-
-    @time A = transpose(convert(Array,df[:, 14:end]))
-
-    A= Float64.(A)
+    hcat(a[2:end]...)
+    
 end
 
 
