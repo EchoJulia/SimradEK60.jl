@@ -423,11 +423,7 @@ function myhcat(s; missingvalue=NaN32)
 
     etype = typeof(missingvalue)
     
-    @static if VERSION < v"0.7.0-DEV.2005"
-        array = Array{etype}(maxlength, length(s))
-    else
-         array = Array{etype}(undef, maxlength, length(s))
-    end
+    array = Array{etype}(undef, maxlength, length(s))
 
     array .= missingvalue
     for i in 1:length(s)
