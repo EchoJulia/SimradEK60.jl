@@ -214,10 +214,14 @@ function pings(datagrams::Channel{SimradRaw.Datagram})
 
                 transducer = config.configurationtransducers[datagram.channel]
 
-                #idx = findfirst(transducer.pulselengthtable, datagram.pulselength)
-                idx = findfirst(isequal(datagram.pulselength), transducer.pulselengthtable)
+                if transducer.frequency != datagram.frequency
+                    @error("$(config.configurationtransducer)  $datagram")
+                end
+
+                idx = findfirst(datagram.pulselength .== transducer.pulselengthtable)
                 
                 sacorrection = transducer.sacorrectiontable[idx]
+                gain = transducer.gaintable[idx]
 
                 ping = EK60Ping(datagram.power,
                                 datagram.athwartshipangle,
@@ -229,7 +233,7 @@ function pings(datagrams::Channel{SimradRaw.Datagram})
                                 datagram.absorptioncoefficient,
                                 datagram.transmitpower,
                                 datagram.pulselength,
-                                transducer.gain,
+                                gain,
                                 transducer.equivalentbeamangle,
                                 sacorrection,
                                 transducer.sacorrectiontable,
